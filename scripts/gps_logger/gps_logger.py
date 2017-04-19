@@ -12,11 +12,13 @@ import signal
 import sys
 from time import sleep
 import serial
-import pynmea2
+sys.path.insert(0, './lib')
+import ublox
 
 def handler(signum, frame):
     global runstate
     runstate = False
+    return
 
 
 signal.signal(signal.SIGINT, handler)
@@ -42,6 +44,7 @@ port = args.port
 baud = args.baud
 
 logfile = open("%s/%s%06d" % (dataDir, gpsPrefix, runNum), "w")
+# stream = open("/home/ntlhui/Downloads/nmea.log");
 stream = serial.Serial(port, baud, timeout = 5)
 print("GPS_LOGGER: Running")
 
@@ -51,14 +54,15 @@ gps_time = 0
 offset = gps_time - ref_time
 
 while runstate:
-    line = stream.readline()
+    try:
+        line = stream.readline()
+    except serial.serialutil.SerialException, e:
+        break
 
     if line is not None:
         msg = pynmea2.parse(line);
-        logfile.write("%.3f, %d, %d, %.3f, %d, %d, %d, %d, %d, %d\n" % (time.time(),
-            msg.latitude, msg.longitude, msg.timestamp))
         if msg.sentence_type == 'GGA':
-    	    logfile.write("%.3f, %d, %d, %.3f, %d, %d, %d, %d, %d, %d\n" % (time.time(),
+            logfile.write("%.3f, %d, %d, %.3f, %d, %d, %d, %d, %d, %d\n" % (time.time(),
                 msg.latitude, msg.longitude, time.time() + offset, msg.altitude, -1, -1, -1, -1, 999))
                 # msg.latitude, msg.longitude, time.time() + offset, msg.altitude, msg.relative_alt, msg.vx, msg.vy, msg.vz, msg.hdg))
         if msg.sentence_type == 'ZDA':

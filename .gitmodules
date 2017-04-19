@@ -1,0 +1,3 @@
+[submodule "scripts/gps_logger/pyUblox"]
+	path = scripts/gps_logger/pyUblox
+	url = https://github.com/tridge/pyUblox.git
